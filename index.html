@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>VisualDL — 3D CNN Viewer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Tiny SVG favicon (avoid /favicon.ico 404) -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%2300d1ff'/%3E%3Cpath d='M3 11l3-6 2 4 2-2 3 4' stroke='%23011' stroke-width='2' fill='none'/%3E%3C/svg%3E" />
+    <meta name="color-scheme" content="dark light" />
+    <style>
+      :root{
+        --bg:#0e0f12; --fg:#e6e6e6; --muted:#a4a7ae; --panel:rgba(255,255,255,.06);
+        --border:rgba(255,255,255,.12); --accent:#66ccff; --good:#34d399; --warn:#f59e0b;
+      }
+      html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);
+        font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
+      /* Three.js mount */
+      #app{position:fixed;inset:0;overflow:hidden;}
+      /* 224×224 drawing pad (buffer is still 28×28 downstream) */
+      #inputCanvas{
+        position:fixed;top:16px;left:16px;width:224px;height:224px;
+        image-rendering:pixelated;background:#111;border:1px solid #333;border-radius:10px;
+        box-shadow:0 8px 22px rgba(0,0,0,.35);z-index:20;
+      }
+      #clearBtn{
+        position:fixed;top:250px;left:16px;z-index:20;cursor:pointer;
+        padding:6px 10px;font-size:13px;border-radius:8px;border:1px solid var(--border);
+        background:var(--panel);color:var(--fg);backdrop-filter:saturate(120%) blur(6px);
+      }
+      /* HUD container */
+      .hud{position:fixed;right:16px;top:16px;max-width:360px;z-index:30;display:grid;gap:10px}
+      .card{
+        background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 14px;
+        backdrop-filter:saturate(120%) blur(6px);-webkit-backdrop-filter:saturate(120%) blur(6px);
+      }
+      .card h1{margin:0 0 6px 0;font-size:14px;letter-spacing:.35px}
+      .card h2{margin:10px 0 6px 0;font-size:13px;letter-spacing:.3px;color:var(--fg)}
+      .card p{margin:6px 0;color:var(--muted)}
+      .kbd{display:inline-block;padding:2px 6px;border:1px solid var(--border);border-bottom-width:2px;
+        border-radius:6px;background:rgba(255,255,255,.05);font-size:12px;color:var(--fg)}
+      .row{display:flex;gap:8px;align-items:center}
+      .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+      .hint{color:var(--muted);font-size:12px;margin-top:4px}
+      details{border-top:1px dashed var(--border);padding-top:8px;margin-top:8px}
+      summary{cursor:pointer;color:var(--fg)}
+      .status{display:flex;gap:8px;flex-wrap:wrap}
+      .pill{padding:3px 8px;border-radius:999px;border:1px solid var(--border);font-size:12px}
+      .ok{background:rgba(52,211,153,.12);color:var(--good)}
+      .warn{background:rgba(245,158,11,.12);color:var(--warn)}
+      /* bottom-left credit */
+      .credit{position:fixed;left:16px;bottom:14px;color:var(--muted);font-size:12px;opacity:.85;user-select:none;z-index:25}
+      a,a:visited{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+      @media (max-width: 980px){
+        .hud{max-width: 92vw}
+        .grid{grid-template-columns: 1fr}
+      }
+    </style>
+    <script type="module" crossorigin src="/VisualDL/assets/index-CVaf4588.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <!-- 224×224 draw pad (worker reads a 28×28 downscale of this) -->
+    <canvas id="inputCanvas" width="224" height="224" title="Draw here (224→28)"></canvas>
+    <button id="clearBtn" title="Clear the drawing pad (C)">Clear</button>
+
+    <!-- Right-side HUD -->
+    <div class="hud" role="complementary" aria-label="Help and Controls">
+      <div class="card" aria-live="polite">
+        <h1>3D CNN Viewer</h1>
+        <p>Draw a digit in the pad (top-left). Each stroke triggers a new inference. Colored tiles show layer activations (viridis colormap: darker → lower, brighter/warmer → higher).</p>
+        <div class="status">
+          <span class="pill ok">ONNX Runtime: wasm</span>
+          <span class="pill ok">Model: TinyCNN (MNIST)</span>
+          <span class="pill warn">Tip: Hold <span class="kbd">Shift</span> for Top-K channels</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Mouse</h2>
+        <div class="grid">
+          <div class="row"><span class="kbd">Drag</span><span>Orbit / rotate</span></div>
+          <div class="row"><span class="kbd">Wheel</span><span>Zoom</span></div>
+          <div class="row"><span class="kbd">Shift + Hover</span><span>Show top-K Conv2 channels</span></div>
+          <div class="row"><span class="kbd">Hover Conv1</span><span>Highlight 5×5 receptive field on input</span></div>
+        </div>
+
+        <h2>Keys</h2>
+        <div class="grid" aria-label="Keyboard shortcuts">
+          <div class="row"><span class="kbd">1</span><span>Toggle Conv1</span></div>
+          <div class="row"><span class="kbd">2</span><span>Toggle Conv2</span></div>
+          <div class="row"><span class="kbd">F</span><span>Focus nearest layer</span></div>
+          <div class="row"><span class="kbd">Space</span><span>Freeze / resume</span></div>
+          <div class="row"><span class="kbd">→</span><span>Step one inference</span></div>
+          <div class="row"><span class="kbd">Q</span><span>Front view</span></div>
+          <div class="row"><span class="kbd">W</span><span>Three-quarter view</span></div>
+          <div class="row"><span class="kbd">E</span><span>Top view</span></div>
+          <div class="row"><span class="kbd">C</span><span>Clear drawing pad</span></div>
+        </div>
+
+        <details>
+          <summary><strong>Learning guide</strong></summary>
+          <p><strong>Conv1 (8×24×24)</strong> tends to learn edge/texture detectors. Hover a tile to see the input’s 5×5 region that contributes to a pixel (receptive field).</p>
+          <p><strong>Conv2 (16×10×10)</strong> builds parts by combining pooled Conv1 features. Hold <span class="kbd">Shift</span> to view only the most active channels.</p>
+          <p><strong>Probabilities</strong> (bars) are the network’s belief across digits 0–9. Values update with each stroke; the tallest bar is the current prediction.</p>
+          <p class="hint">Tip: draw a “9”, then erase a loop—watch channels and probabilities react.</p>
+        </details>
+      </div>
+    </div>
+
+    <div class="credit">VisualDL • CNN Demo</div>
+
+    <!-- App entry -->
+  </body>
+</html>
