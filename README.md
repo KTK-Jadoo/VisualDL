@@ -4,6 +4,10 @@ An educational and aesthetic visualization of a small convolutional neural netwo
 
 The intent is clarity and responsiveness. Clarity is achieved by making invisible tensors spatial and color-mapped. Responsiveness is achieved by separating rendering from inference and by updating GPU textures in place rather than recreating geometry or materials each frame.
 
+![Screen Recording 2025-09-08 at 7 50 56 PM](https://github.com/user-attachments/assets/c536964c-79b6-4a3b-bac0-78294a39b573)
+<img width="942" height="637" alt="image" src="https://github.com/user-attachments/assets/8e4b6953-7579-43d2-98ca-7dfb5c7d8eb1" />
+
+
 ---
 
 ## Live demo
