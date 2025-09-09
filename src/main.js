@@ -225,13 +225,18 @@ function updatePulses(){
   }
 }
 
-/* =========== Worker Bridge =========== */
+/* ========= Worker Bridge ========= */
 const worker = new Worker(new URL('./net.worker.js', import.meta.url), { type: 'module' });
 
-let shiftHeld=false;
+// Send the correct model URL that respects the Vite base (/VisualDL/)
+const modelUrl = new URL(`${import.meta.env.BASE_URL}model.onnx`, self.location.origin).toString();
+worker.postMessage({ type: 'init', modelUrl });
+
+let shiftHeld = false;
 worker.onmessage = (e) => {
   const { type, payload } = e.data || {};
   if (type === 'error'){ console.error('[Worker ERROR]', payload); return; }
+  if (type === 'ready'){ console.log('[Worker] ready'); return; }   // optional
   if (type !== 'activations') return;
 
   const { inputRGBA, conv1RGBA, conv2RGBA, conv2TopK, probs } = payload;
