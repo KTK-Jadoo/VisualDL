@@ -113,25 +113,18 @@ The main thread computes the correct absolute URL for `model.onnx` using `import
 
 ### Convolution and feature maps
 A convolutional layer applies learned kernels to local neighborhoods. For output channel $c_{\text{out}}$ at spatial index $(i,j)$ with kernel size $k$ and stride $s$,
-$$
-y[c_{\text{out}}, i, j] \;=\; \sum_{c_{\text{in}}} \sum_{u=0}^{k-1} \sum_{v=0}^{k-1}
-w[c_{\text{out}}, c_{\text{in}}, u, v]\; x[c_{\text{in}}, i\cdot s + u, j\cdot s + v] \;+\; b[c_{\text{out}}].
-$$
+$$y[c_{\text{out}}, i, j] \;=\; \sum_{c_{\text{in}}} \sum_{u=0}^{k-1} \sum_{v=0}^{k-1}
+w[c_{\text{out}}, c_{\text{in}}, u, v]\; x[c_{\text{in}}, i\cdot s + u, j\cdot s + v] \;+\; b[c_{\text{out}}].$$
 The demo visualizes two convolutional stages by showing each output channel as a small image tile after per-channel normalization.
 
 ### Receptive field intuition
 The receptive field describes how many input pixels influence a single activation. If layer $l$ has kernel size $k_l$ and stride $s_l$, the receptive field $r_l$ and effective jump $j_l$ evolve from $r_0=1, j_0=1$ by
-$$
-r_l \;=\; r_{l-1} + (k_l - 1)\, j_{l-1}, \qquad
-j_l \;=\; j_{l-1}\, s_l.
-$$
+$$r_l \;=\; r_{l-1} + (k_l - 1)\, j_{l-1}, \qquad j_l \;=\; j_{l-1}\, s_l.$$
 The UI’s input overlay shows a 5×5 footprint for Conv1 to match the intended first kernel size for this demo. If you substitute a different model, adjust the overlay to the correct $k_1$.
 
 ### Softmax for class probabilities
 Given logits $z_k$, probabilities are obtained by
-$$
-p_k \;=\; \frac{e^{z_k}}{\sum_j e^{z_j}}.
-$$
+$$p_k \;=\; \frac{e^{z_k}}{\sum_j e^{z_j}}$$
 Softmax is applied in the Worker to ensure that the bar chart always reflects a normalized distribution even if the model exports logits.
 
 ### Normalization for display
