@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>VisualDL — 3D CNN Viewer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Tiny SVG favicon (avoids /favicon.ico 404s) -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%2300d1ff'/%3E%3Cpath d='M3 11l3-6 2 4 2-2 3 4' stroke='%23011' stroke-width='2' fill='none'/%3E%3C/svg%3E" />
+    <meta name="color-scheme" content="dark light" />
+
+    <style>
+      :root {
+        --bg: #0e0f12;
+        --fg: #e6e6e6;
+        --muted: #a4a7ae;
+        --panel: rgba(255,255,255,0.06);
+        --border: rgba(255,255,255,0.12);
+        --accent: #66ccff;
+      }
+      html, body {
+        height: 100%;
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      }
+      /* Three.js canvas mount */
+      #app {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+      }
+      /* 28x28 draw canvas */
+      #inputCanvas {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        width: 112px;   /* 4x upscale for visibility; underlying buffer is still 28x28 */
+        height: 112px;
+        image-rendering: pixelated; /* keep the chunky look */
+        background: #111;
+        border: 1px solid #333;
+        border-radius: 6px;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+        z-index: 20;
+      }
+      /* Help / status panel */
+      .hud {
+        position: fixed;
+        right: 16px;
+        top: 16px;
+        max-width: 320px;
+        padding: 10px 12px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 30;
+      }
+      .hud h1 {
+        margin: 0 0 6px 0;
+        font-size: 13px;
+        letter-spacing: .4px;
+        color: var(--fg);
+      }
+      .hud p {
+        margin: 4px 0;
+        color: var(--muted);
+      }
+      .kbd {
+        display: inline-block;
+        padding: 1px 6px;
+        border: 1px solid var(--border);
+        border-bottom-width: 2px;
+        border-radius: 6px;
+        font-size: 12px;
+        background: rgba(255,255,255,0.04);
+        color: var(--fg);
+      }
+      .credit {
+        position: fixed;
+        left: 16px;
+        bottom: 14px;
+        color: var(--muted);
+        font-size: 12px;
+        opacity: .8;
+        user-select: none;
+        z-index: 25;
+      }
+      a, a:visited { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+    </style>
+  </head>
+
+  <body>
+    <!-- Three.js mounts its WebGL canvas here -->
+    <div id="app"></div>
+
+    <!-- 28×28 drawing pad (the worker reads this buffer) -->
+    <!-- was width/height 28 -->
+    <canvas id="inputCanvas" width="224" height="224"
+        title="Draw here (28×28)"
+        style="position:fixed;left:16px;top:16px;width:224px;height:224px;image-rendering:pixelated;background:#111;border:1px solid #333;border-radius:6px;box-shadow:0 6px 16px rgba(0,0,0,.35);z-index:20"></canvas>
+
+
+    <!-- Minimal help overlay -->
+    <div class="hud" role="status" aria-live="polite">
+      <h1>3D CNN Viewer</h1>
+      <p>• Draw a digit in the pad (top-left). The network runs live.</p>
+      <p>• Rotate / zoom the scene with your mouse (orbit controls).</p>
+      <p>• Toggle layers: <span class="kbd">1</span> Conv1, <span class="kbd">2</span> Conv2</p>
+      <p>• Bars at right show class probabilities.</p>
+    </div>
+
+    <div class="credit">VisualDL • CNN Demo</div>
+
+    <!-- Entry script -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
