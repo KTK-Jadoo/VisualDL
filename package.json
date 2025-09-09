@@ -1,0 +1,28 @@
+{
+  "name": "visualdl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KTK-Jadoo/VisualDL.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/KTK-Jadoo/VisualDL/issues"
+  },
+  "homepage": "https://github.com/KTK-Jadoo/VisualDL#readme",
+  "dependencies": {
+    "onnxruntime-web": "^1.22.0",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "vite": "^7.1.5"
+  }
+}
