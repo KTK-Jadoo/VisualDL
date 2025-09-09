@@ -10,12 +10,6 @@ The intent is clarity and responsiveness. Clarity is achieved by making invisibl
 
 ---
 
-## Live demo
-
-This repository is designed to be served from a GitHub Pages project site. Add your deployment URL here once you enable Pages for the `gh-pages` branch.
-
----
-
 ## Design rationale
 
 ### Inference in a Web Worker
